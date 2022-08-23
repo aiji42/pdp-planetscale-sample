@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  data-proxy:
+    image: node:18-bullseye
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    entrypoint: /app/entrypoint.sh
+    command: yarn pdp
+    environment:
+      PRISMA_SCHEMA_PATH: /app/prisma/schema.prisma
+      DATABASE_URL: ${DATABASE_URL}
+      DATA_PROXY_API_KEY: foobar
+      PORT: "3000"
+    volumes:
+      - ./:/app:cached
+      - node_modules:/app/node_modules
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - "443:443"
+    environment:
+      STAGE: local
+      DOMAINS: 'localhost -> http://data-proxy:3000'
+    volumes:
+      - ./ssl-certs:/var/lib/https-portal
+
+volumes:
+  node_modules:
